@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.demo.services.Servis;
 
+import jakarta.servlet.http.HttpSession;
+import model.Korisnik;
 import model.Pesma;
 import model.TekstPesme;
 import model.Zanr;
@@ -51,15 +53,15 @@ public class Kontroler {
         return "rezultatPretrageZanr";
     }
     
-    @GetMapping("/tekstPesme/{id}")
-    public String prikaziTekstPesme(@PathVariable("id") Integer pesmaId, Model m) {
-        TekstPesme tekstPesme = s.pronadjiTekstPesmePoPesmaId(pesmaId);
-        if (tekstPesme == null) {
-            throw new RuntimeException("Tekst pesme nije pronađen.");
-        }
-        m.addAttribute("tekstPesme", tekstPesme);
-        return "tekst";
-    }
+//    @GetMapping("/tekstPesme/{id}")
+//    public String prikaziTekstPesme(@PathVariable("id") Integer pesmaId, Model m) {
+//        TekstPesme tekstPesme = s.pronadjiTekstPesmePoPesmaId(pesmaId);
+//        if (tekstPesme == null) {
+//            throw new RuntimeException("Tekst pesme nije pronađen.");
+//        }
+//        m.addAttribute("tekstPesme", tekstPesme);
+//        return "tekst";
+//    }
 
     
     @GetMapping("/prijava")
@@ -82,15 +84,125 @@ public class Kontroler {
     }
 
     @PostMapping("/processPrijava")
-    public String obradiPrijavu(@RequestParam("email") String email, 
-                                @RequestParam("lozinka") String lozinka) {
-        // Pozovi servis za autentifikaciju korisnika
+    public String obradiPrijavu(@RequestParam("email") String email,
+                                @RequestParam("lozinka") String lozinka,
+                                HttpSession session) 
+    {
         boolean uspesno = s.prijaviKorisnika(email, lozinka);
         if (uspesno) {
-            return "redirect:/"; // Uspešna prijava
+            Korisnik k = s.nadjiKorisnikaPoEmailu(email);
+            session.setAttribute("ulogovaniKorisnik", k);
+            
+            System.out.println("Prijava USPELA za korisnika: " + k.getKorisnickoIme());
+            return "redirect:/";
         } else {
-            return "redirect:/prijava?error"; // Neuspešna prijava
+            System.out.println("Neuspesna prijava");
+            return "redirect:/prijava?error=NeuspesnaPrijava";
         }
     }
+
+    
+    @GetMapping("/dodajTekst")
+    public String dodajTekst(@RequestParam(value="zanrId", required=false) Integer zanrId,
+                             HttpSession session,
+                             Model model) 
+    {
+        // Proverimo da li je korisnik ulogovan
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (ulogovani == null) {
+            return "redirect:/prijava";
+        }
+
+        // Uzimamo sve zanrove
+        List<Zanr> zanrovi = s.zanrovi();
+        model.addAttribute("zanrovi", zanrovi);
+
+        // Ako je korisnik izabrao zanr, ucitamo pesme tog zanra
+        if (zanrId != null) {
+            List<Pesma> pesme = s.pretraziPesmePoZanru(zanrId);
+            model.addAttribute("pesme", pesme);
+        }
+
+        return "dodajTekst"; 
+    }
+
+    @GetMapping("/mojNalog")
+    public String prikaziMojNalog(HttpSession session, Model model) {
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (ulogovani == null) {
+            return "redirect:/prijava";
+        }
+        // Samo prikaz mojnalog.jsp, bez dohvaćanja pesama
+        model.addAttribute("korisnik", ulogovani);
+        return "mojnalog";
+    }
+    
+    @GetMapping("/potvrda")
+    public String potvrda() {
+        return "potvrda";
+    }
+    
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.removeAttribute("ulogovaniKorisnik");
+        return "redirect:/";
+    }
+
+    
+    @PostMapping("/processDodajTekst")
+    public String processDodajTekst(
+            @RequestParam("pesmaId") int pesmaId,
+            @RequestParam("tekst") String tekst,
+            HttpSession session) {
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (ulogovani == null) {
+            return "redirect:/prijava";
+        }
+
+        // Pozivamo servis da sačuva tekst
+        s.dodajTekstPesme(pesmaId, tekst, ulogovani);
+
+        // Preusmeravamo na stranicu "uspesno.jsp"
+        return "uspesno";
+    }
+    
+    @GetMapping("/tekstovi/{pesmaId}")
+    public String prikaziTekstoveZaPesmu(
+            @PathVariable("pesmaId") int pesmaId, Model model) {
+        List<TekstPesme> tekstovi = s.nadjiTekstoveZaPesmu(pesmaId);
+        model.addAttribute("tekstovi", tekstovi);
+        return "tekstovi";
+    }
+    
+    @GetMapping("/tekstPesme/{pesmaId}")
+    public String prikaziTekstPesme(
+            @PathVariable("pesmaId") int pesmaId, Model model) {
+        List<TekstPesme> tekstovi = s.nadjiTekstoveZaPesmu(pesmaId);
+
+        if (tekstovi.size() == 1) {
+            // Ako postoji samo jedan tekst, direktno prikaži tekst.jsp
+        	TekstPesme tekstPesme = tekstovi.get(0);
+        	model.addAttribute("tekstPesme", tekstPesme);
+            return "tekst";
+        } else {
+            // Ako ih ima više, prikaži listu svih tekstova
+            model.addAttribute("tekstovi", tekstovi);
+            return "tekstovi";
+        }
+    }
+    
+    @GetMapping("/tekst/{tekstId}")
+    public String prikaziPojedinacanTekst(@PathVariable int tekstId, Model model) {
+        TekstPesme tekstPesme = s.nadjiTekstPesmePoId(tekstId);
+        if (tekstPesme == null) {
+            throw new RuntimeException("Tekst nije pronađen.");
+        }
+        model.addAttribute("tekstPesme", tekstPesme);
+        return "tekst"; // Ovo otvara postojeću `tekst.jsp` stranicu
+    }
+
+
+
+
 
 }

@@ -2,6 +2,7 @@ package com.example.demo.services;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,8 +58,7 @@ public class Servis {
     }
     
     public TekstPesme pronadjiTekstPesmePoPesmaId(Integer pesmaId) {
-        return tpr.findByPesmaId(pesmaId)
-            .orElseThrow(() -> new RuntimeException("Tekst za pesmu nije pronađen."));
+        return (TekstPesme) tpr.findByPesmaId(pesmaId);
     }
     
     public void registrujKorisnika(String username, String email, String lozinka) {
@@ -73,11 +73,35 @@ public class Servis {
 
     public boolean prijaviKorisnika(String email, String lozinka) {
         Korisnik korisnik = korisnikRepository.findByEmail(email);
-        return korisnik != null && korisnik.getLozinka().equals(lozinka);
+        if (korisnik != null && korisnik.getLozinka().equals(lozinka)) {
+            return true; 
+        }
+        return false;
+    }
+    
+    public Korisnik nadjiKorisnikaPoEmailu(String email) {
+        return korisnikRepository.findByEmail(email);
+    }
+    
+    public void dodajTekstPesme(int pesmaId, String tekst, Korisnik korisnik) {
+        TekstPesme tekstPesme = new TekstPesme();
+        Pesma pesma = pr.findById(pesmaId).orElseThrow(() -> new RuntimeException("Pesma nije pronađena."));
+        tekstPesme.setPesma(pesma);
+        tekstPesme.setKorisnik(korisnik);
+        tekstPesme.setTekst(tekst);
+        tekstPesme.setVerifikovan(false);
+        tpr.save(tekstPesme);
+    }
+
+    
+    public List<TekstPesme> nadjiTekstoveZaPesmu(int pesmaId) {
+        return tpr.findByPesmaId(pesmaId);
+    }
+    
+    public TekstPesme nadjiTekstPesmePoId(int tekstId) {
+        return tpr.findById(tekstId).orElseThrow(() -> new RuntimeException("Tekst nije pronađen."));
     }
 
 
-    
-    
-	
+
 }

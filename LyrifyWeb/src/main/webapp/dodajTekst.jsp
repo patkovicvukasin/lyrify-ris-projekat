@@ -19,8 +19,8 @@
                 </option>
             </c:forEach>
         </select>
-        <button type="submit">Prikaži pesme</button>
-    </form>
+        <button type="submit">Prikaži pesme</button><br>
+    </form><br>
 
     <c:if test="${not empty pesme}">
         <form action="/processDodajTekst" method="POST">
@@ -34,13 +34,14 @@
             </select>
             <br><br>
 
-            <label for="tekst">Unesi tekst:</label>
+            <label for="tekst">Unesi tekst:</label><br>
             <textarea id="tekst" name="tekst" rows="5" cols="40"></textarea>
             <br><br>
 
             <button type="submit">Sačuvaj tekst</button>
         </form>
     </c:if>
+    <br>
 
     <a href="/">Nazad</a>
 </body>

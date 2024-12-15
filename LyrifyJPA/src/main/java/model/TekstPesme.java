@@ -26,6 +26,10 @@ public class TekstPesme implements Serializable {
 	//bi-directional many-to-one association to Pesma
 	@ManyToOne
 	private Pesma pesma;
+	
+	@ManyToOne
+	@JoinColumn(name = "korisnik_id", nullable = false) // Referenca na korisnika koji je dodao tekst
+	private Korisnik korisnik;
 
 	public TekstPesme() {
 	}
@@ -60,6 +64,14 @@ public class TekstPesme implements Serializable {
 
 	public void setPesma(Pesma pesma) {
 		this.pesma = pesma;
+	}
+	
+	public Korisnik getKorisnik() {
+	    return this.korisnik;
+	}
+
+	public void setKorisnik(Korisnik korisnik) {
+	    this.korisnik = korisnik;
 	}
 
 }

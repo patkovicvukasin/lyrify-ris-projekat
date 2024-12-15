@@ -12,7 +12,7 @@
     <p>Uloga: ${korisnik.uloga}</p>
     <p>Datum registracije: ${korisnik.datumRegistracije}</p>
 
-    <p><strong>Moje pesme:</strong></p>
+    <p><strong>Moji tekstovi:</strong></p>
     <c:if test="${not empty pesme}">
         <ul>
             <c:forEach items="${pesme}" var="p">
@@ -21,6 +21,10 @@
         </ul>
     </c:if>
 
+	<br>
+	<a href="/potvrda">Izloguj se</a>
+    <br><br>
+    
     <a href="/">Nazad</a>
 </body>
 </html>

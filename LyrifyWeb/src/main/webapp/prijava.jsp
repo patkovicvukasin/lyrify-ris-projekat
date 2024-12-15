@@ -9,7 +9,7 @@
     <form action="/processPrijava" method="POST">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required>
-        <brfor><br>
+        <brfor><br><br>
         <label ="lozinka">Lozinka:</label>
         <input type="password" id="lozinka" name="lozinka" required>
         <br><br>

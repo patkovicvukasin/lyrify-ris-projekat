@@ -31,17 +31,16 @@
     <hr>
     
     <c:choose>
-        <c:when test="${not isLoggedIn}">
-            <div margin-top: 20px;">
-       		 	<a href="/prijava"><button type="button">Prijava</button></a>
-        		<a href="/registracija"><button type="button">Registracija</button></a>
-    		</div>
-        </c:when>
-        <c:otherwise>
-            <a href="/dodajTekst"><button type="button">Dodaj tekst</button></a>
-            <a href="/mojNalog"><button type="button">Moj nalog</button></a>
-        </c:otherwise>
-    </c:choose>
+	    <c:when test="${empty sessionScope.ulogovaniKorisnik}">
+	        <a href="/prijava"><button>Prijava</button></a>
+	        <a href="/registracija"><button>Registracija</button></a>
+	    </c:when>
+	    <c:otherwise>
+	        <a href="/dodajTekst"><button>Dodaj tekst</button></a>
+	        <a href="/mojNalog"><button>Moj nalog</button></a>
+    	</c:otherwise>
+	</c:choose>
+
 </body>
 </html>
 
