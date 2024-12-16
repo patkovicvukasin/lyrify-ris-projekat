@@ -18,7 +18,7 @@ public class TekstPesme implements Serializable {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int id;
 
-	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String tekst;
 	
 	private Boolean verifikovan = false;

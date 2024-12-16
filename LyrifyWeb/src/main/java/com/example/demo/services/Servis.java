@@ -102,6 +102,48 @@ public class Servis {
         return tpr.findById(tekstId).orElseThrow(() -> new RuntimeException("Tekst nije pronađen."));
     }
 
+    public List<TekstPesme> nadjiTekstoveZaKorisnika(int korisnikId) {
+        return tpr.findByKorisnikId(korisnikId);
+    }
+    
+    public TekstPesme nadjiTekstPoId(int tekstId) {
+        return tpr.findById(tekstId)
+        		.orElseThrow(() -> new RuntimeException("Tekst nije pronađen."));
+    }
+
+    public void dodajPesmuINjenTekst(String naziv, String izvodjac, int zanrId, String tekst, Korisnik korisnik) {
+        Pesma pesma = new Pesma();
+        pesma.setNaziv(naziv);
+        pesma.setIzvodjac(izvodjac);
+        pesma.setZanr(zr.findById(zanrId).orElseThrow(() -> new RuntimeException("Zanr nije pronađen")));
+        pesma.setKorisnik(korisnik);
+        pr.save(pesma); // Sačuvaj pesmu
+
+        TekstPesme tekstPesme = new TekstPesme();
+        tekstPesme.setPesma(pesma); // Poveži tekst sa pesmom
+        tekstPesme.setTekst(tekst);
+        tekstPesme.setKorisnik(korisnik); // Poveži tekst sa korisnikom
+        tekstPesme.setVerifikovan(false); // Podrazumevano nije verifikovan
+        tpr.save(tekstPesme); // Sačuvaj tekst
+    }
+    
+    public List<Pesma> pretraziPesmePoImenuIliTekstu(String tekst) {
+        // Pretraga po imenu
+        List<Pesma> pesmePoImenu = pr.findByNazivContainingIgnoreCase(tekst);
+
+        // Pretraga po tekstu
+        System.out.println("Pretraga po tekstu: " + tekst);
+        List<TekstPesme> tekstovi = tpr.findByTekstContainingIgnoreCase(tekst);
+        System.out.println("Pronađeni tekstovi: " + tekstovi);
+        List<Pesma> pesmePoTekstu = tekstovi.stream()
+                                            .map(TekstPesme::getPesma)
+                                            .distinct()
+                                            .toList();
+
+        // Kombinuj rezultate
+        pesmePoImenu.addAll(pesmePoTekstu);
+        return pesmePoImenu.stream().distinct().toList(); // Uklanjanje duplikata
+    }
 
 
 }

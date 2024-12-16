@@ -32,6 +32,7 @@
                     <option value="${p.id}">${p.naziv} - ${p.izvodjac}</option>
                 </c:forEach>
             </select>
+            <a href="/dodajPesmu"><button type="button">Dodaj novu pesmu</button></a>
             <br><br>
 
             <label for="tekst">Unesi tekst:</label><br>

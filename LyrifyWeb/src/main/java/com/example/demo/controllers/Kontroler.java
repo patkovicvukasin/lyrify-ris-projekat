@@ -24,15 +24,25 @@ public class Kontroler {
 	@Autowired
     private Servis s;
 	
-	@GetMapping("/pretragaPoImenu")
-	public String pretragaPoImenu(@RequestParam("pesma") String naziv, Model m) {
-	    System.out.println("Naziv za pretragu: " + naziv); // Debug log
-	    List<Pesma> pesme = s.pretraziPesmePoImenu(naziv);
-	    //System.out.println("Pronađene pesme: " + pesme); // Debug log
-	    m.addAttribute("pesme", pesme);
-	    m.addAttribute("pretraga", naziv);
-	    return "rezultatPretrage";
-	}
+	@GetMapping("/pretraga")
+    public String pretragaPesme(@RequestParam("pesma") String unos, HttpSession session, Model m) {
+    	System.out.println("Unos za pretragu: " + unos);
+    	List<Pesma> pesme;
+
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (ulogovani != null) {
+            // Registrovan korisnik: pretraga po imenu ili tekstu
+            pesme = s.pretraziPesmePoImenuIliTekstu(unos);
+        } else {
+            // Neregistrovan korisnik: samo pretraga po imenu
+            pesme = s.pretraziPesmePoImenu(unos);
+        }
+
+        System.out.println("Pronađene pesme: " + pesme);
+        m.addAttribute("pesme", pesme);
+        m.addAttribute("pretraga", unos);
+        return "rezultatPretrage";
+    }
 	
     @GetMapping("/")
     public String zanrovi(Model m) {
@@ -134,6 +144,9 @@ public class Kontroler {
         }
         // Samo prikaz mojnalog.jsp, bez dohvaćanja pesama
         model.addAttribute("korisnik", ulogovani);
+        
+        List<TekstPesme> tekstovi = s.nadjiTekstoveZaKorisnika(ulogovani.getId());
+        model.addAttribute("tekstovi", tekstovi);
         return "mojnalog";
     }
     
@@ -200,9 +213,45 @@ public class Kontroler {
         model.addAttribute("tekstPesme", tekstPesme);
         return "tekst"; // Ovo otvara postojeću `tekst.jsp` stranicu
     }
+    
+    @GetMapping("/tekstKorisnika/{tekstId}")
+    public String prikaziTekstKorisnika(@PathVariable("tekstId") int tekstId,HttpSession session, Model model) {
+    	Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (ulogovani == null) {
+            return "redirect:/prijava";
+        }
+    	
+    	TekstPesme tekstPesme = s.nadjiTekstPoId(tekstId); // Pronađi tekst po ID-u
+        if (tekstPesme == null) {
+            throw new RuntimeException("Tekst nije pronađen.");
+        }
+        model.addAttribute("tekstPesme", tekstPesme); // Prosleđujemo tekst na tekst.jsp
+        return "tekst";
+    }
 
+    
+    @GetMapping("/dodajPesmu")
+    public String prikaziDodajPesmu(Model model) {
+        model.addAttribute("zanrovi", s.zanrovi()); // Dodaj zanrove u model
+        return "dodajPesmu"; // Prikaz nove JSP stranice
+    }
 
+    @PostMapping("/processDodajPesmu")
+    public String processDodajPesmu(
+            @RequestParam("naziv") String naziv,
+            @RequestParam("izvodjac") String izvodjac,
+            @RequestParam("zanrId") int zanrId,
+            @RequestParam("tekst") String tekst,
+            HttpSession session) {
 
+        Korisnik ulogovanKorisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (ulogovanKorisnik == null) {
+            return "redirect:/prijava";
+        }
 
+        // Pozivamo servis da doda pesmu i njen tekst
+        s.dodajPesmuINjenTekst(naziv, izvodjac, zanrId, tekst, ulogovanKorisnik);
 
+        return "redirect:/"; // Povratak na početnu stranicu
+    }
 }

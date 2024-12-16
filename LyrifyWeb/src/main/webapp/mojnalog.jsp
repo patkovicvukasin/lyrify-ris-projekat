@@ -13,12 +13,14 @@
     <p>Datum registracije: ${korisnik.datumRegistracije}</p>
 
     <p><strong>Moji tekstovi:</strong></p>
-    <c:if test="${not empty pesme}">
-        <ul>
-            <c:forEach items="${pesme}" var="p">
-                <li>${p.naziv} - ${p.izvodjac}</li>
-            </c:forEach>
-        </ul>
+    <c:if test="${not empty tekstovi}">
+       <ul>
+           <c:forEach items="${tekstovi}" var="tekst">
+               <li>
+                   <a href="/tekstKorisnika/${tekst.id}">${tekst.pesma.naziv} - ${tekst.pesma.izvodjac}</a>
+               </li>
+           </c:forEach>
+       </ul>
     </c:if>
 
 	<br>

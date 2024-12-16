@@ -9,7 +9,7 @@
     <h1>Dobrodosli na Lyrify!</h1>
 
     <!-- Forma za pretragu po imenu pesme -->
-    <form action="/pretragaPoImenu" method="GET">
+    <form action="/pretraga" method="GET">
         <label for="pesma">Pretrazi tekst za pesmu:</label>
         <input type="text" id="pesma" name="pesma" placeholder="">
         <button type="submit">Pretrazi</button>
