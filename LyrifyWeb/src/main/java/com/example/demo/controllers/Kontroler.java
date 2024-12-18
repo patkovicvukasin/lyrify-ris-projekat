@@ -1,6 +1,8 @@
 package com.example.demo.controllers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -147,6 +149,15 @@ public class Kontroler {
         
         List<TekstPesme> tekstovi = s.nadjiTekstoveZaKorisnika(ulogovani.getId());
         model.addAttribute("tekstovi", tekstovi);
+        
+        // Ovde dodaj logiku za dobijanje prosečne ocene svakog teksta
+        Map<Integer, Double> mapeProsecneOcene = new HashMap<>();
+        for (TekstPesme tp : tekstovi) {
+            Double prosek = s.nadjiProsecnuOcenu(tp.getId());
+            mapeProsecneOcene.put(tp.getId(), prosek); 
+        }
+        model.addAttribute("mapaOcena", mapeProsecneOcene);
+        
         return "mojnalog";
     }
     
@@ -189,13 +200,20 @@ public class Kontroler {
     
     @GetMapping("/tekstPesme/{pesmaId}")
     public String prikaziTekstPesme(
-            @PathVariable("pesmaId") int pesmaId, Model model) {
+            @PathVariable("pesmaId") int pesmaId, Model model, HttpSession session) {
         List<TekstPesme> tekstovi = s.nadjiTekstoveZaPesmu(pesmaId);
 
         if (tekstovi.size() == 1) {
             // Ako postoji samo jedan tekst, direktno prikaži tekst.jsp
         	TekstPesme tekstPesme = tekstovi.get(0);
         	model.addAttribute("tekstPesme", tekstPesme);
+        	
+        	Double prosecnaOcena = s.nadjiProsecnuOcenu(tekstPesme.getId());
+        	model.addAttribute("prosecnaOcena", prosecnaOcena);
+        	
+        	Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        	model.addAttribute("ulogovaniKorisnik",ulogovani);
+        	
             return "tekst";
         } else {
             // Ako ih ima više, prikaži listu svih tekstova
@@ -205,12 +223,19 @@ public class Kontroler {
     }
     
     @GetMapping("/tekst/{tekstId}")
-    public String prikaziPojedinacanTekst(@PathVariable int tekstId, Model model) {
+    public String prikaziPojedinacanTekst(@PathVariable int tekstId, Model model,HttpSession session) {
         TekstPesme tekstPesme = s.nadjiTekstPesmePoId(tekstId);
+        //prosecna ocena
+        Double prosecnaOcena = s.nadjiProsecnuOcenu(tekstId);
         if (tekstPesme == null) {
             throw new RuntimeException("Tekst nije pronađen.");
         }
         model.addAttribute("tekstPesme", tekstPesme);
+        model.addAttribute("prosecnaOcena", prosecnaOcena);
+        
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        model.addAttribute("ulogovaniKorisnik", ulogovani);
+        
         return "tekst"; // Ovo otvara postojeću `tekst.jsp` stranicu
     }
     
@@ -254,4 +279,37 @@ public class Kontroler {
 
         return "redirect:/"; // Povratak na početnu stranicu
     }
+    
+    
+    //ocena teksta
+    @PostMapping("/oceniTekst")
+    public String oceniTekst(@RequestParam("tekstId") int tekstId,
+                             @RequestParam("ocena") int ocena,
+                             HttpSession session,
+                             Model m) {
+        Korisnik korisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (korisnik == null) return "redirect:/prijava";
+        
+        // Ako pokušava da oceni svoj tekst
+        TekstPesme tekstPesme = s.nadjiTekstPesmePoId(tekstId);
+        if (tekstPesme.getKorisnik().getId() == korisnik.getId()) {
+            // možeš baciti grešku ili ignorisati unos
+            return "redirect:/tekst/" + tekstId; 
+        }
+        
+        // Proveri da li je korisnik već ocenio tekst
+        boolean ocenio = s.vecOcenioTekst(tekstId, korisnik.getId());
+        if (ocenio) {
+            m.addAttribute("poruka", "Već ste ocenili ovaj tekst.");
+            return "vecOcenjeno";
+        }
+
+        s.dodajOcenuTeksta(tekstId, korisnik.getId(), ocena);
+        return "redirect:/tekst/" + tekstId;
+    }
+    
+    
+
+
+   
 }

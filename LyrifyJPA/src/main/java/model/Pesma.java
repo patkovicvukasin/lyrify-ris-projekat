@@ -1,201 +1,123 @@
 package model;
 
 import java.io.Serializable;
-import jakarta.persistence.*;
 import java.util.List;
+import jakarta.persistence.*;
 
-
-/**
- * The persistent class for the pesma database table.
- * 
- */
 @Entity
-@NamedQuery(name="Pesma.findAll", query="SELECT p FROM Pesma p")
+@Table(name = "pesma")
+@NamedQuery(name = "Pesma.findAll", query = "SELECT p FROM Pesma p")
 public class Pesma implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-	private String izvodjac;
+    private String izvodjac;
 
-	@Column(name="link_ka_mediju")
-	private String linkKaMediju;
+    @Column(name = "link")
+    private String link;
 
-	private String naziv;
+    private String naziv;
+    private String slika;
 
-	private String slika;
+    // bi-directional many-to-one association to Zanr
+    @ManyToOne
+    @JoinColumn(name = "zanr_id")
+    private Zanr zanr;
 
-	//bi-directional many-to-one association to Komentar
-	@OneToMany(mappedBy="pesma")
-	private List<Komentar> komentars;
+    // bi-directional many-to-one association to Korisnik
+    @ManyToOne
+    @JoinColumn(name = "korisnik_id")
+    private Korisnik korisnik;
 
-	//bi-directional many-to-one association to OcenaTeksta
-	@OneToMany(mappedBy="pesma")
-	private List<OcenaTeksta> ocenaTekstas;
+    // bi-directional one-to-many association to TekstPesme
+    @OneToMany(mappedBy = "pesma", cascade = CascadeType.ALL)
+    private List<TekstPesme> tekstPesmes;
 
-	//bi-directional many-to-many association to OmiljenaLista
-	@ManyToMany(mappedBy="pesmas")
-	private List<OmiljenaLista> omiljenaListas;
+    public Pesma() {
+    }
 
-	//bi-directional many-to-one association to Korisnik
-	@ManyToOne
-	private Korisnik korisnik;
+    public int getId() {
+        return id;
+    }
 
-	//bi-directional many-to-one association to Zanr
-	@ManyToOne
-	private Zanr zanr;
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	//bi-directional many-to-one association to TekstPesme
-	@OneToMany(mappedBy="pesma")
-	private List<TekstPesme> tekstPesmes;
+    public String getIzvodjac() {
+        return izvodjac;
+    }
 
-	public Pesma() {
-	}
+    public void setIzvodjac(String izvodjac) {
+        this.izvodjac = izvodjac;
+    }
 
-	public int getId() {
-		return this.id;
-	}
+    public String getLink() {
+        return link;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public void setLink(String link) {
+        this.link = link;
+    }
 
-	public String getIzvodjac() {
-		return this.izvodjac;
-	}
+    public String getNaziv() {
+        return naziv;
+    }
 
-	public void setIzvodjac(String izvodjac) {
-		this.izvodjac = izvodjac;
-	}
+    public void setNaziv(String naziv) {
+        this.naziv = naziv;
+    }
 
-	public String getLinkKaMediju() {
-		return this.linkKaMediju;
-	}
+    public String getSlika() {
+        return slika;
+    }
 
-	public void setLinkKaMediju(String linkKaMediju) {
-		this.linkKaMediju = linkKaMediju;
-	}
+    public void setSlika(String slika) {
+        this.slika = slika;
+    }
 
-	public String getNaziv() {
-		return this.naziv;
-	}
+    public Zanr getZanr() {
+        return zanr;
+    }
 
-	public void setNaziv(String naziv) {
-		this.naziv = naziv;
-	}
+    public void setZanr(Zanr zanr) {
+        this.zanr = zanr;
+    }
 
-	public String getSlika() {
-		return this.slika;
-	}
+    public Korisnik getKorisnik() {
+        return korisnik;
+    }
 
-	public void setSlika(String slika) {
-		this.slika = slika;
-	}
+    public void setKorisnik(Korisnik korisnik) {
+        this.korisnik = korisnik;
+    }
 
-//	public byte getVerifikovana() {
-//		return this.verifikovana;
-//	}
-//
-//	public void setVerifikovana(byte verifikovana) {
-//		this.verifikovana = verifikovana;
-//	}
+    public List<TekstPesme> getTekstPesmes() {
+        return tekstPesmes;
+    }
 
-	public List<Komentar> getKomentars() {
-		return this.komentars;
-	}
+    public void setTekstPesmes(List<TekstPesme> tekstPesmes) {
+        this.tekstPesmes = tekstPesmes;
+    }
 
-	public void setKomentars(List<Komentar> komentars) {
-		this.komentars = komentars;
-	}
+    // Pomoćne metode za dodavanje i uklanjanje TekstPesme iz liste
+    public TekstPesme addTekstPesme(TekstPesme tekstPesme) {
+        getTekstPesmes().add(tekstPesme);
+        tekstPesme.setPesma(this);
+        return tekstPesme;
+    }
 
-	public Komentar addKomentar(Komentar komentar) {
-		getKomentars().add(komentar);
-		komentar.setPesma(this);
-		return komentar;
-	}
+    public TekstPesme removeTekstPesme(TekstPesme tekstPesme) {
+        getTekstPesmes().remove(tekstPesme);
+        tekstPesme.setPesma(null);
+        return tekstPesme;
+    }
 
-	public Komentar removeKomentar(Komentar komentar) {
-		getKomentars().remove(komentar);
-		komentar.setPesma(null);
-
-		return komentar;
-	}
-
-	public List<OcenaTeksta> getOcenaTekstas() {
-		return this.ocenaTekstas;
-	}
-
-	public void setOcenaTekstas(List<OcenaTeksta> ocenaTekstas) {
-		this.ocenaTekstas = ocenaTekstas;
-	}
-
-	public OcenaTeksta addOcenaTeksta(OcenaTeksta ocenaTeksta) {
-		getOcenaTekstas().add(ocenaTeksta);
-		ocenaTeksta.setPesma(this);
-
-		return ocenaTeksta;
-	}
-
-	public OcenaTeksta removeOcenaTeksta(OcenaTeksta ocenaTeksta) {
-		getOcenaTekstas().remove(ocenaTeksta);
-		ocenaTeksta.setPesma(null);
-
-		return ocenaTeksta;
-	}
-
-	public List<OmiljenaLista> getOmiljenaListas() {
-		return this.omiljenaListas;
-	}
-
-	public void setOmiljenaListas(List<OmiljenaLista> omiljenaListas) {
-		this.omiljenaListas = omiljenaListas;
-	}
-
-	public Korisnik getKorisnik() {
-		return this.korisnik;
-	}
-
-	public void setKorisnik(Korisnik korisnik) {
-		this.korisnik = korisnik;
-	}
-
-	public Zanr getZanr() {
-		return this.zanr;
-	}
-
-	public void setZanr(Zanr zanr) {
-		this.zanr = zanr;
-	}
-
-	public List<TekstPesme> getTekstPesmes() {
-		return this.tekstPesmes;
-	}
-
-	public void setTekstPesmes(List<TekstPesme> tekstPesmes) {
-		this.tekstPesmes = tekstPesmes;
-	}
-
-	public TekstPesme addTekstPesme(TekstPesme tekstPesme) {
-		getTekstPesmes().add(tekstPesme);
-		tekstPesme.setPesma(this);
-
-		return tekstPesme;
-	}
-
-	public TekstPesme removeTekstPesme(TekstPesme tekstPesme) {
-		getTekstPesmes().remove(tekstPesme);
-		tekstPesme.setPesma(null);
-
-		return tekstPesme;
-	}
-
-	@Override
-	public String toString() {
-		return naziv;
-	}
-	
-	
-
+    @Override
+    public String toString() {
+        return naziv;
+    }
 }

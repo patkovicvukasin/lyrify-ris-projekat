@@ -2,17 +2,18 @@ package com.example.demo.services;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.repositories.KorisnikRepository;
+import com.example.demo.repositories.OcenaTekstaRepository;
 import com.example.demo.repositories.PesmaRepository;
 import com.example.demo.repositories.TekstPesmeRepository;
 import com.example.demo.repositories.ZanrRepository;
 
 import model.Korisnik;
+import model.OcenaTeksta;
 import model.Pesma;
 import model.TekstPesme;
 import model.Uloga;
@@ -31,7 +32,10 @@ public class Servis {
 	private TekstPesmeRepository tpr;
 	
 	@Autowired
-    private KorisnikRepository korisnikRepository;
+    private KorisnikRepository kr;
+	
+	@Autowired
+	private OcenaTekstaRepository otr;
 	
 	public List<Pesma> pretraziPesmePoImenu(String naziv) {
         List<Pesma> pesme = pr.findByNazivContainingIgnoreCase(naziv);
@@ -68,11 +72,11 @@ public class Servis {
         korisnik.setLozinka(lozinka); // Lozinka bi trebala biti hashirana
         korisnik.setUloga(Uloga.USER);
         korisnik.setDatumRegistracije(LocalDate.now());
-        korisnikRepository.save(korisnik);
+        kr.save(korisnik);
     }
 
     public boolean prijaviKorisnika(String email, String lozinka) {
-        Korisnik korisnik = korisnikRepository.findByEmail(email);
+        Korisnik korisnik = kr.findByEmail(email);
         if (korisnik != null && korisnik.getLozinka().equals(lozinka)) {
             return true; 
         }
@@ -80,7 +84,7 @@ public class Servis {
     }
     
     public Korisnik nadjiKorisnikaPoEmailu(String email) {
-        return korisnikRepository.findByEmail(email);
+        return kr.findByEmail(email);
     }
     
     public void dodajTekstPesme(int pesmaId, String tekst, Korisnik korisnik) {
@@ -144,6 +148,38 @@ public class Servis {
         pesmePoImenu.addAll(pesmePoTekstu);
         return pesmePoImenu.stream().distinct().toList(); // Uklanjanje duplikata
     }
+
+    
+    //prosecna ocena
+    
+    public void dodajOcenuTeksta(int tekstPesmeId, int korisnikId, int ocena) {
+        TekstPesme tekstPesme = tpr.findById(tekstPesmeId)
+            .orElseThrow(() -> new RuntimeException("Tekst nije pronađen."));
+        Korisnik korisnik = kr.findById(korisnikId)
+            .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen."));
+
+//        // Proveri da li je korisnik već ocenio ovaj tekst
+//        List<OcenaTeksta> postojeceOcene = otr.findByTekstPesmeIdAndKorisnikId(tekstPesmeId, korisnikId);
+//        if (!postojeceOcene.isEmpty()) {
+//            throw new RuntimeException("Već ste ocenili ovaj tekst.");
+//        }
+
+        OcenaTeksta novaOcena = new OcenaTeksta();
+        novaOcena.setTekstPesme(tekstPesme);
+        novaOcena.setKorisnik(korisnik);
+        novaOcena.setOcena(ocena);
+        otr.save(novaOcena);
+    }
+
+    public Double nadjiProsecnuOcenu(int tekstPesmeId) {
+        return otr.findProsecnaOcena(tekstPesmeId);
+    }
+    
+    public boolean vecOcenioTekst(int tekstPesmeId, int korisnikId) {
+        List<OcenaTeksta> postojeceOcene = otr.findByTekstPesmeIdAndKorisnikId(tekstPesmeId, korisnikId);
+        return !postojeceOcene.isEmpty();
+    }
+
 
 
 }

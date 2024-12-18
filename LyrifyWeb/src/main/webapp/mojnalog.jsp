@@ -17,7 +17,7 @@
        <ul>
            <c:forEach items="${tekstovi}" var="tekst">
                <li>
-                   <a href="/tekstKorisnika/${tekst.id}">${tekst.pesma.naziv} - ${tekst.pesma.izvodjac}</a>
+                   <a href="/tekst/${tekst.id}">${tekst.pesma.naziv} - ${tekst.pesma.izvodjac}</a>
                </li>
            </c:forEach>
        </ul>
