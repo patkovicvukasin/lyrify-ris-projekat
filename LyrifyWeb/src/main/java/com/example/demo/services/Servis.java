@@ -12,6 +12,7 @@ import com.example.demo.repositories.PesmaRepository;
 import com.example.demo.repositories.TekstPesmeRepository;
 import com.example.demo.repositories.ZanrRepository;
 
+import jakarta.transaction.Transactional;
 import model.Korisnik;
 import model.OcenaTeksta;
 import model.Pesma;
@@ -138,7 +139,6 @@ public class Servis {
         // Pretraga po tekstu
         System.out.println("Pretraga po tekstu: " + tekst);
         List<TekstPesme> tekstovi = tpr.findByTekstContainingIgnoreCase(tekst);
-        System.out.println("Pronađeni tekstovi: " + tekstovi);
         List<Pesma> pesmePoTekstu = tekstovi.stream()
                                             .map(TekstPesme::getPesma)
                                             .distinct()
@@ -179,6 +179,17 @@ public class Servis {
         List<OcenaTeksta> postojeceOcene = otr.findByTekstPesmeIdAndKorisnikId(tekstPesmeId, korisnikId);
         return !postojeceOcene.isEmpty();
     }
+    
+    @Transactional
+    public void verifikujTekst(int tekstId) {
+        TekstPesme tekstPesme = tpr.findById(tekstId)
+                .orElseThrow(() -> new RuntimeException("Tekst nije pronađen."));
+                
+        tekstPesme.setVerifikovan(true);
+        tpr.save(tekstPesme);
+    }
+
+
 
 
 

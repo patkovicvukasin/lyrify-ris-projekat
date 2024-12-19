@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpSession;
 import model.Korisnik;
 import model.Pesma;
 import model.TekstPesme;
+import model.Uloga;
 import model.Zanr;
 
 @Controller
@@ -214,6 +215,11 @@ public class Kontroler {
         	Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
         	model.addAttribute("ulogovaniKorisnik",ulogovani);
         	
+        	boolean isAdmin = (ulogovani != null && ulogovani.getUloga() == Uloga.ADMIN);
+            model.addAttribute("isAdmin", isAdmin);
+            System.out.println("Tip uloge: " + (ulogovani != null ? ulogovani.getUloga().getClass().getName() : "null"));
+
+            System.out.println("Uloga korisnika: " + (ulogovani != null ? ulogovani.getUloga() : "null"));
             return "tekst";
         } else {
             // Ako ih ima više, prikaži listu svih tekstova
@@ -236,6 +242,9 @@ public class Kontroler {
         Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
         model.addAttribute("ulogovaniKorisnik", ulogovani);
         
+        boolean isAdmin = (ulogovani != null && ulogovani.getUloga() == Uloga.ADMIN);
+        model.addAttribute("isAdmin", isAdmin);
+        //System.out.println("Uloga korisnika: " + (ulogovani != null ? ulogovani.getUloga() : "null"));
         return "tekst"; // Ovo otvara postojeću `tekst.jsp` stranicu
     }
     
@@ -251,6 +260,12 @@ public class Kontroler {
             throw new RuntimeException("Tekst nije pronađen.");
         }
         model.addAttribute("tekstPesme", tekstPesme); // Prosleđujemo tekst na tekst.jsp
+
+        boolean isAdmin = (ulogovani != null && ulogovani.getUloga() == Uloga.ADMIN);
+        model.addAttribute("isAdmin", isAdmin);
+        System.out.println("Tip uloge: " + (ulogovani != null ? ulogovani.getUloga().getClass().getName() : "null"));
+
+        System.out.println("Uloga korisnika: " + (ulogovani != null ? ulogovani.getUloga() : "null"));
         return "tekst";
     }
 
@@ -307,6 +322,46 @@ public class Kontroler {
         s.dodajOcenuTeksta(tekstId, korisnik.getId(), ocena);
         return "redirect:/tekst/" + tekstId;
     }
+    
+    //verifikacija
+    
+    @GetMapping("/verifikacija")
+    public String prikaziVerifikaciju(@RequestParam("tekstId") int tekstId, Model model, HttpSession session) {
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+
+        // Proveri da li je korisnik admin
+        if (ulogovani == null || ulogovani.getUloga() != Uloga.ADMIN) {
+            return "redirect:/";
+        }
+
+        // Dodaj tekst u model za prikaz na stranici
+        TekstPesme tekstPesme = s.nadjiTekstPesmePoId(tekstId);
+        model.addAttribute("tekstPesme", tekstPesme);
+
+        return "verifikacija";
+    }
+
+    @PostMapping("/processVerifikacija")
+    public String procesuirajVerifikaciju(@RequestParam("tekstId") int tekstId, HttpSession session) {
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+
+        // Proveri da li je korisnik admin
+        if (ulogovani == null || ulogovani.getUloga() != Uloga.ADMIN) {
+            return "redirect:/";
+        }
+
+        // Pozovi servis da verifikuje tekst
+        try {
+            s.verifikujTekst(tekstId);
+            System.out.println("Tekst sa ID " + tekstId + " uspešno verifikovan.");
+        } catch (Exception e) {
+            System.err.println("Greška prilikom verifikacije: " + e.getMessage());
+            return "redirect:/error"; // Opcionalno, stranica za greške
+        }
+
+        return "redirect:/tekst/" + tekstId; // Vrati se na tekst nakon verifikacije
+    }
+
     
     
 

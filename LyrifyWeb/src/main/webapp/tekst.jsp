@@ -40,7 +40,15 @@
 	            </select>
 	            <button type="submit">Oceni</button>
 	        </form>
+        </c:if><br>
+        
+        <c:if test="${isAdmin}">
+            <form action="/verifikacija" method="GET">
+    			<input type="hidden" name="tekstId" value="${tekstPesme.id}">
+    			<button type="submit">Verifikuj</button>
+			</form>
         </c:if>
+        
         <p style="font-size: 18px"><strong>Dodao korisnik:</strong> ${tekstPesme.korisnik.korisnickoIme}</p>
     </c:if>
     
