@@ -100,7 +100,15 @@ public class Servis {
 
     
     public List<TekstPesme> nadjiTekstoveZaPesmu(int pesmaId) {
-        return tpr.findByPesmaId(pesmaId);
+    	List<TekstPesme> tekstovi = tpr.findByPesmaId(pesmaId);
+
+        for (TekstPesme tekst : tekstovi) {
+            // Računanje prosečne ocene za svaki tekst
+            Double prosecnaOcena = otr.findProsecnaOcena(tekst.getId());
+            tekst.setProsecnaOcena(prosecnaOcena); 
+        }
+    
+    	return tpr.findByPesmaId(pesmaId);
     }
     
     public TekstPesme nadjiTekstPesmePoId(int tekstId) {
@@ -189,6 +197,44 @@ public class Servis {
         tpr.save(tekstPesme);
     }
 
+    public void dodajZanr(String naziv) {
+        Zanr noviZanr = new Zanr();
+        noviZanr.setNaziv(naziv);
+        zr.save(noviZanr); // zr je ZanrRepository
+    }
+
+    public List<TekstPesme> sortiraniTekstoviZaPesmu(int pesmaId) {
+        List<TekstPesme> tekstovi = tpr.findByPesmaId(pesmaId);
+
+        
+        for (TekstPesme tekst : tekstovi) {
+            // Računanje prosečne ocene za svaki tekst
+            Double prosecnaOcena = otr.findProsecnaOcena(tekst.getId());
+            tekst.setProsecnaOcena(prosecnaOcena); 
+        }
+        
+        tekstovi.sort((t1, t2) -> {
+            // Prioritet verifikovanih tekstova
+            if (t1.getVerifikovan() && !t2.getVerifikovan()) {
+                return -1;
+            } else if (!t1.getVerifikovan() && t2.getVerifikovan()) {
+                return 1;
+            }
+
+            // Ako oba imaju isti verifikovan status, poredi ocene
+            if (t1.getProsecnaOcena() != null && t2.getProsecnaOcena() != null) {
+                return t2.getProsecnaOcena().compareTo(t1.getProsecnaOcena());
+            } else if (t1.getProsecnaOcena() != null) {
+                return -1;
+            } else if (t2.getProsecnaOcena() != null) {
+                return 1;
+            }
+
+            return 0; // Ako su ocene jednake ili obe null
+        });
+        
+        return tekstovi;
+    }
 
 
 

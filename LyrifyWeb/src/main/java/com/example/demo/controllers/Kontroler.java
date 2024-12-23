@@ -129,6 +129,9 @@ public class Kontroler {
         // Uzimamo sve zanrove
         List<Zanr> zanrovi = s.zanrovi();
         model.addAttribute("zanrovi", zanrovi);
+        
+        boolean isAdmin = (ulogovani != null && ulogovani.getUloga() == Uloga.ADMIN);
+        model.addAttribute("isAdmin", isAdmin);
 
         // Ako je korisnik izabrao zanr, ucitamo pesme tog zanra
         if (zanrId != null) {
@@ -193,9 +196,24 @@ public class Kontroler {
     
     @GetMapping("/tekstovi/{pesmaId}")
     public String prikaziTekstoveZaPesmu(
-            @PathVariable("pesmaId") int pesmaId, Model model) {
-        List<TekstPesme> tekstovi = s.nadjiTekstoveZaPesmu(pesmaId);
+            @PathVariable("pesmaId") int pesmaId,
+            @RequestParam(value = "sortiraj", required = false, defaultValue = "false") boolean sortiraj, Model model) {
+        List<TekstPesme> tekstovi;
+        
+        if(sortiraj) {
+        	tekstovi = s.sortiraniTekstoviZaPesmu(pesmaId);
+        }else {
+        	tekstovi = s.nadjiTekstoveZaPesmu(pesmaId);
+        }
+        
+        for(TekstPesme tekst : tekstovi) {
+        	Double prosek = s.nadjiProsecnuOcenu(tekst.getId());
+        	tekst.setProsecnaOcena(prosek);
+        }
+        
         model.addAttribute("tekstovi", tekstovi);
+        model.addAttribute("pesmaId", pesmaId);
+        model.addAttribute("trenutnoSortirano", sortiraj);
         return "tekstovi";
     }
     
@@ -362,8 +380,33 @@ public class Kontroler {
         return "redirect:/tekst/" + tekstId; // Vrati se na tekst nakon verifikacije
     }
 
-    
-    
+    @PostMapping("/processDodajZanr")
+    public String processDodajZanr(@RequestParam("zanrNaziv") String zanrNaziv, HttpSession session, Model m) {
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+
+        // Provera da li je korisnik admin
+        if (ulogovani == null || ulogovani.getUloga() != Uloga.ADMIN) {
+            return "redirect:/"; // Ako nije admin, vrati na početnu
+        }
+        
+        boolean isAdmin = (ulogovani != null && ulogovani.getUloga() == Uloga.ADMIN);
+        m.addAttribute("isAdmin", isAdmin);
+
+
+        // Dodaj novi žanr
+        s.dodajZanr(zanrNaziv);
+
+        return "redirect:/dodajTekst"; // Vrati na stranicu za dodavanje teksta
+    }
+
+    @GetMapping("/tekstovi/sortiraj/{pesmaId}")
+    public String sortiraniTekstoviZaPesmu(@PathVariable("pesmaId") int pesmaId, Model model) {
+        List<TekstPesme> sortiraniTekstovi = s.sortiraniTekstoviZaPesmu(pesmaId);
+        model.addAttribute("tekstovi", sortiraniTekstovi);
+        model.addAttribute("pesmaId", pesmaId);
+        return "tekstovi";
+    }
+
 
 
    

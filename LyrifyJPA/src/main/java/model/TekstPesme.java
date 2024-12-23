@@ -112,6 +112,9 @@ public class TekstPesme implements Serializable {
     @OneToMany(mappedBy = "tekstPesme", cascade = CascadeType.ALL)
     private List<OcenaTeksta> ocenaTekstas;
 
+    @Transient
+    private Double prosecnaOcena;
+    
     public TekstPesme() {
     }
 
@@ -137,6 +140,14 @@ public class TekstPesme implements Serializable {
 
     public void setVerifikovan(Boolean verifikovan) {
         this.verifikovan = verifikovan;
+    }
+
+    public Double getProsecnaOcena() {
+        return prosecnaOcena;
+    }
+
+    public void setProsecnaOcena(Double prosecnaOcena) {
+        this.prosecnaOcena = prosecnaOcena;
     }
 
     public Pesma getPesma() {
