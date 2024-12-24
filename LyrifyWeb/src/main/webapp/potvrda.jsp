@@ -8,9 +8,9 @@
 <body>
     <h3>Da li ste sigurni da zelite da se izlogujete?</h3>
     <p>
-        <a href="/logout">Potvrdi</a>
+        <a href="/logout"><button type="button">Potvrdi</button></a>
         &nbsp;&nbsp;
-        <a href="/mojNalog">Ponisti</a>
+        <a href="/mojNalog"><button type="button">Ponisti</button></a>
     </p>
 </body>
 </html>

@@ -21,12 +21,10 @@
                </li>
            </c:forEach>
        </ul>
-    </c:if>
-
-	<br>
-	<a href="/potvrda">Izloguj se</a>
-    <br><br>
+    </c:if><br>
     
-    <a href="/">Nazad</a>
+	<a href="/potvrda"><button type="button">Izloguj se</button></a>
+    <br><br>
+    <a href="/"><button type="button">Nazad</button></a>
 </body>
 </html>

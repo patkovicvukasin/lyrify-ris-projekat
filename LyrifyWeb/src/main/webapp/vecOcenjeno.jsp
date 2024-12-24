@@ -7,6 +7,6 @@
 </head>
 <body>
     <h1>${poruka}</h1>
-    <p>Povratak na <a href="/">početnu stranicu</a>.</p>
+    <a href="/"><button type"button">Početna</button></a>
 </body>
 </html>

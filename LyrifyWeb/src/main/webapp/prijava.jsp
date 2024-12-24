@@ -15,6 +15,6 @@
         <br><br>
         <button type="submit">Prijavi se</button>
     </form><br><br>
-    <a href="/">Nazad na početnu</a>
+    <a href="/"><button type="button">Nazad na početnu</button></a>
 </body>
 </html>

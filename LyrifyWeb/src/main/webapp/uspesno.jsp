@@ -6,6 +6,6 @@
 </head>
 <body>
     <h1>Tekst pesme je uspešno dodat!</h1>
-    <a href="/">Vrati se na početnu stranu</a>
+    <a href="/"><button type="button">Početna</button></a>
 </body>
 </html>

@@ -300,7 +300,15 @@ public class Kontroler {
             @RequestParam("izvodjac") String izvodjac,
             @RequestParam("zanrId") int zanrId,
             @RequestParam("tekst") String tekst,
-            HttpSession session) {
+            HttpSession session,
+            Model m) {
+    	
+    	boolean pesmaVecPostoji = s.pesmaVecPostoji(naziv, izvodjac);
+        if (pesmaVecPostoji) {
+            m.addAttribute("naziv", naziv);
+            m.addAttribute("izvodjac", izvodjac);
+            return "postojiTekst";
+        }
 
         Korisnik ulogovanKorisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
         if (ulogovanKorisnik == null) {
@@ -407,6 +415,34 @@ public class Kontroler {
         return "tekstovi";
     }
 
+    @GetMapping("/brisanjeTeksta")
+    public String prikaziStranicuZaBrisanje(@RequestParam("tekstId") int tekstId, Model model, HttpSession session) {
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        TekstPesme tekstPesme = s.nadjiTekstPesmePoId(tekstId);
+
+        // Provera da li je korisnik autor teksta
+        if (ulogovani == null || tekstPesme.getKorisnik().getId() != ulogovani.getId()) {
+            return "redirect:/";
+        }
+
+        model.addAttribute("tekstPesme", tekstPesme);
+        return "brisanjeTeksta";
+    }
+
+    @PostMapping("/processBrisanjeTeksta")
+    public String obrisiTekst(@RequestParam("tekstId") int tekstId, HttpSession session) {
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        TekstPesme tekstPesme = s.nadjiTekstPesmePoId(tekstId);
+
+        // Provera da li je korisnik autor teksta
+        if (ulogovani == null || tekstPesme.getKorisnik().getId() != ulogovani.getId()) {
+            return "redirect:/";
+        }
+
+        // Pozovi servis za brisanje teksta
+        s.obrisiTekst(tekstId);
+        return "redirect:/";
+    }
 
 
    

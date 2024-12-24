@@ -23,6 +23,6 @@
         </c:otherwise>
     </c:choose>
 
-    <a href="/">Nazad</a>
+    <a href="/"><button type="button">Nazad</button></a>
 </body>
 </html>

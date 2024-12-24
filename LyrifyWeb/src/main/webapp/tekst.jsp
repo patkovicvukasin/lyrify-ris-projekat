@@ -57,13 +57,19 @@
         </c:if>
         
         <p style="font-size: 18px"><strong>Dodao korisnik:</strong> ${tekstPesme.korisnik.korisnickoIme}</p>
+        <c:if test="${ulogovaniKorisnik != null && ulogovaniKorisnik.id == tekstPesme.korisnik.id}">
+		    <form action="/brisanjeTeksta" method="GET">
+		        <input type="hidden" name="tekstId" value="${tekstPesme.id}">
+		        <button type="submit">Obriši tekst</button>
+		    </form>
+		</c:if><br>
     </c:if>
     
     <c:if test="${empty tekstPesme}">
         <p>Tekst pesme nije pronađen.</p>
     </c:if>
     
-    <a href="/">Početna</a><br><br><br>
+    <a href="/"><button type="button">Početna</button></a><br><br><br>
 </body>
 </html>
 

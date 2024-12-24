@@ -236,7 +236,14 @@ public class Servis {
         return tekstovi;
     }
 
+    public void obrisiTekst(int tekstId) {
+        tpr.deleteById(tekstId);
+    }
 
+    public boolean pesmaVecPostoji(String naziv, String izvodjac) {
+        List<Pesma> pesme = pr.findByNazivAndIzvodjac(naziv, izvodjac);
+        return !pesme.isEmpty();
+    }
 
 
 }

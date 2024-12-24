@@ -26,6 +26,6 @@
 
         <button type="submit">Dodaj pesmu</button>
     </form><br><br>
-    <a href="/">Nazad</a>
+    <a href="/"><button type="button">Nazad</button></a>
 </body>
 </html>
