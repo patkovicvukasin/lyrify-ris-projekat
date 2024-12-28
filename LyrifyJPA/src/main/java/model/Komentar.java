@@ -1,9 +1,22 @@
 package model;
 
 import java.io.Serializable;
-import jakarta.persistence.*;
 import java.util.Date;
 
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /**
  * The persistent class for the komentar database table.
@@ -19,8 +32,9 @@ public class Komentar implements Serializable {
 	private int id;
 
 	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name="datum_vreme")
-	private Date datumVreme;
+	@Column(name="datum_vreme", nullable = false, updatable = false)
+    @Generated(value = GenerationTime.INSERT)
+    private Date datumVreme = new Date();
 
 	@Lob
 	@Column(name="tekst_komentara")
@@ -30,9 +44,10 @@ public class Komentar implements Serializable {
 	@ManyToOne
 	private Korisnik korisnik;
 
-	//bi-directional many-to-one association to Pesma
+	//bi-directional many-to-one association to TekstPesme
 	@ManyToOne
-	private Pesma pesma;
+	@JoinColumn(name = "tekst_id") // Referenca na kolonu tekst_id u bazi
+	private TekstPesme tekstPesme;
 
 	public Komentar() {
 	}
@@ -69,12 +84,11 @@ public class Komentar implements Serializable {
 		this.korisnik = korisnik;
 	}
 
-	public Pesma getPesma() {
-		return this.pesma;
+	public TekstPesme getTekstPesme() {
+		return this.tekstPesme;
 	}
 
-	public void setPesma(Pesma pesma) {
-		this.pesma = pesma;
+	public void setTekstPesme(TekstPesme tekstPesme) {
+		this.tekstPesme = tekstPesme;
 	}
-
 }

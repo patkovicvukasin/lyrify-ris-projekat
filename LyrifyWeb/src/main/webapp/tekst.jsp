@@ -14,7 +14,36 @@
         <pre style="font-size: 16px; line-height: 1.5; ">${tekstPesme.tekst}</pre>
         <br><br>
         
-        <!-- Prosečna ocena -->
+        <c:if test="${not empty komentari}">
+            <h3>Komentari:</h3>
+            <ul>
+                <c:forEach items="${komentari}" var="komentar">
+                    <li>
+                        <strong>${komentar.korisnik.korisnickoIme}:</strong> ${komentar.tekstKomentara} <br>
+                        <small>${komentar.datumVreme}</small>
+                        <c:if test="${ulogovaniKorisnik != null && ulogovaniKorisnik.id == komentar.korisnik.id}">
+		                    <form action="/obrisiKomentar" method="POST" style="display: inline;">
+		                        <input type="hidden" name="komentarId" value="${komentar.id}">
+		                        <button type="submit">Obriši</button>
+		                    </form>
+		                </c:if>
+                    </li>
+                </c:forEach>
+            </ul>
+        </c:if>
+
+        <!-- Forma za dodavanje komentara -->
+        <c:if test="${ulogovaniKorisnik != null && ulogovaniKorisnik.id != tekstPesme.korisnik.id}">
+            <h3>Dodajte komentar:</h3>
+            <form action="/dodajKomentar" method="POST">
+                <input type="hidden" name="tekstId" value="${tekstPesme.id}">
+                <textarea name="tekstKomentara" rows="3" cols="50" required></textarea><br>
+                <button type="submit">Postavi komentar</button>
+            </form>
+        </c:if>
+        
+        
+        <br><br>
         <p style="font-size: 18px"><strong>Prosečna ocena:</strong> 
             <c:choose>
                 <c:when test="${prosecnaOcena != null}">
@@ -56,7 +85,18 @@
             </c:choose>
         </c:if>
         
-        <p style="font-size: 18px"><strong>Dodao korisnik:</strong> ${tekstPesme.korisnik.korisnickoIme}</p>
+        <br>
+        <p style="font-size: 18px"><strong>Dodao korisnik:</strong> 
+		    <c:choose>
+		        <c:when test="${ulogovaniKorisnik != null && ulogovaniKorisnik.id != tekstPesme.korisnik.id}">
+		            <a href="/profil/${tekstPesme.korisnik.id}">${tekstPesme.korisnik.korisnickoIme}</a>
+		        </c:when>
+		        <c:otherwise>
+		            ${tekstPesme.korisnik.korisnickoIme}
+		        </c:otherwise>
+		    </c:choose>
+		</p>
+
         <c:if test="${ulogovaniKorisnik != null && ulogovaniKorisnik.id == tekstPesme.korisnik.id}">
 		    <form action="/brisanjeTeksta" method="GET">
 		        <input type="hidden" name="tekstId" value="${tekstPesme.id}">

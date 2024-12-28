@@ -1,11 +1,13 @@
 package com.example.demo.services;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.repositories.KomentarRepository;
 import com.example.demo.repositories.KorisnikRepository;
 import com.example.demo.repositories.OcenaTekstaRepository;
 import com.example.demo.repositories.PesmaRepository;
@@ -13,6 +15,7 @@ import com.example.demo.repositories.TekstPesmeRepository;
 import com.example.demo.repositories.ZanrRepository;
 
 import jakarta.transaction.Transactional;
+import model.Komentar;
 import model.Korisnik;
 import model.OcenaTeksta;
 import model.Pesma;
@@ -37,6 +40,9 @@ public class Servis {
 	
 	@Autowired
 	private OcenaTekstaRepository otr;
+	
+	@Autowired
+	private KomentarRepository komr;
 	
 	public List<Pesma> pretraziPesmePoImenu(String naziv) {
         List<Pesma> pesme = pr.findByNazivContainingIgnoreCase(naziv);
@@ -245,5 +251,42 @@ public class Servis {
         return !pesme.isEmpty();
     }
 
+    public Korisnik nadjiKorisnikaPoId(int korisnikId) {
+        return kr.findById(korisnikId).orElse(null); // `kr` je repozitorijum za korisnike
+    }
 
+    public List<TekstPesme> nadjiTekstoveZaDrugogKorisnika(int korisnikId) {
+        return tpr.findByKorisnikId(korisnikId); // `tpr` je repozitorijum za tekstove pesama
+    }
+
+    public List<Komentar> nadjiKomentareZaTekst(int tekstId) {
+        List<Komentar> komentari = komr.findByTekstPesmeId(tekstId);
+        System.out.println("Dohvaćeni komentari za tekst ID " + tekstId + ": " + komentari);
+        return komentari;
+    }
+
+
+    public void dodajKomentar(int tekstPesmeId, Korisnik korisnik, String tekstKomentara) {
+    	Komentar komentar = new Komentar();
+        komentar.setTekstKomentara(tekstKomentara);
+        komentar.setKorisnik(korisnik);
+
+        TekstPesme tekstPesme = tpr.findById(tekstPesmeId)
+                .orElseThrow(() -> new RuntimeException("Tekst pesme nije pronađen."));
+        komentar.setTekstPesme(tekstPesme);
+
+        komentar.setDatumVreme(new Date()); // Obavezno postavljanje datuma
+        komr.save(komentar);
+    }
+    
+    public Komentar nadjiKomentarPoId(int komentarId) {
+        return komr.findById(komentarId).orElse(null);
+    }
+
+    public void obrisiKomentar(int komentarId) {
+        komr.deleteById(komentarId);
+    }
+
+    
+    
 }

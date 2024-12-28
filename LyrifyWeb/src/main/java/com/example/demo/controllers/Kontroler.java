@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.example.demo.services.Servis;
 
 import jakarta.servlet.http.HttpSession;
+import model.Komentar;
 import model.Korisnik;
 import model.Pesma;
 import model.TekstPesme;
@@ -227,6 +228,10 @@ public class Kontroler {
         	TekstPesme tekstPesme = tekstovi.get(0);
         	model.addAttribute("tekstPesme", tekstPesme);
         	
+        	List<Komentar> komentari = s.nadjiKomentareZaTekst(tekstPesme.getId());
+        	System.out.println("Komentari za tekst ID " + tekstPesme.getId() + ": " + komentari);
+        	model.addAttribute("komentari", komentari);
+        	
         	Double prosecnaOcena = s.nadjiProsecnuOcenu(tekstPesme.getId());
         	model.addAttribute("prosecnaOcena", prosecnaOcena);
         	
@@ -254,6 +259,11 @@ public class Kontroler {
         if (tekstPesme == null) {
             throw new RuntimeException("Tekst nije pronađen.");
         }
+        
+        List<Komentar> komentari = s.nadjiKomentareZaTekst(tekstPesme.getId());
+    	System.out.println("Komentari za tekst ID " + tekstPesme.getId() + ": " + komentari);
+    	model.addAttribute("komentari", komentari);
+    	
         model.addAttribute("tekstPesme", tekstPesme);
         model.addAttribute("prosecnaOcena", prosecnaOcena);
         
@@ -278,6 +288,10 @@ public class Kontroler {
             throw new RuntimeException("Tekst nije pronađen.");
         }
         model.addAttribute("tekstPesme", tekstPesme); // Prosleđujemo tekst na tekst.jsp
+        
+        List<Komentar> komentari = s.nadjiKomentareZaTekst(tekstPesme.getId());
+    	System.out.println("Komentari za tekst ID " + tekstPesme.getId() + ": " + komentari);
+    	model.addAttribute("komentari", komentari);
 
         boolean isAdmin = (ulogovani != null && ulogovani.getUloga() == Uloga.ADMIN);
         model.addAttribute("isAdmin", isAdmin);
@@ -444,6 +458,58 @@ public class Kontroler {
         return "redirect:/";
     }
 
+    @GetMapping("/profil/{korisnikId}")
+    public String prikaziProfilKorisnika(@PathVariable("korisnikId") int korisnikId, Model model) {
+        // Pronađi korisnika po ID-u
+        Korisnik korisnik = s.nadjiKorisnikaPoId(korisnikId);
+        if (korisnik == null) {
+            throw new RuntimeException("Korisnik nije pronađen.");
+        }
+        
+        // Pronađi tekstove koje je korisnik dodao
+        List<TekstPesme> tekstovi = s.nadjiTekstoveZaDrugogKorisnika(korisnikId);
+        
+        model.addAttribute("korisnikProfil", korisnik);
+        model.addAttribute("tekstovi", tekstovi);
+        
+        return "nalog"; // Otvori `nalog.jsp`
+    }
+
+    
+    @PostMapping("/dodajKomentar")
+    public String dodajKomentar(
+            @RequestParam("tekstId") int tekstId,
+            @RequestParam("tekstKomentara") String tekstKomentara,
+            HttpSession session) {
+        Korisnik ulogovaniKorisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+
+        if (ulogovaniKorisnik == null) {
+            return "redirect:/prijava";
+        }
+
+        try {
+            s.dodajKomentar(tekstId, ulogovaniKorisnik, tekstKomentara);
+        } catch (Exception e) {
+            System.err.println("Greška pri dodavanju komentara: " + e.getMessage());
+            return "redirect:/error"; // Opcionalno, stranica za greške
+        }
+        return "redirect:/tekst/" + tekstId;
+    }
+    
+    @PostMapping("/obrisiKomentar")
+    public String obrisiKomentar(@RequestParam("komentarId") int komentarId, HttpSession session) {
+        Korisnik ulogovaniKorisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (ulogovaniKorisnik == null) {
+            return "redirect:/prijava";
+        }
+
+        Komentar komentar = s.nadjiKomentarPoId(komentarId);
+        if (komentar != null && komentar.getKorisnik().getId() == ulogovaniKorisnik.getId()) {
+            s.obrisiKomentar(komentarId);
+        }
+
+        return "redirect:/tekst/" + komentar.getTekstPesme().getId(); // Vrati korisnika na stranicu teksta
+    }
 
    
 }
