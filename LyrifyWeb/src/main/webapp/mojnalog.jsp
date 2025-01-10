@@ -23,6 +23,22 @@
        </ul>
     </c:if><br>
     
+    <p><strong>Omiljeni tekstovi:</strong></p>
+	<c:if test="${not empty omiljeniTekstovi}">
+	    <ul>
+	        <c:forEach items="${omiljeniTekstovi}" var="fav">
+	            <li>
+	                <a href="/tekst/${fav.tekst.id}">
+	                    ${fav.tekst.pesma.naziv} - ${fav.tekst.pesma.izvodjac}
+	                </a>
+	            </li>
+	        </c:forEach>
+	    </ul>
+	</c:if>
+	<c:if test="${empty omiljeniTekstovi}">
+	    <p>Trenutno nemate omiljenih tekstova.<br><br></p>
+	</c:if>
+    
 	<a href="/potvrda"><button type="button">Izloguj se</button></a>
     <br><br>
     <a href="/"><button type="button">Nazad</button></a>

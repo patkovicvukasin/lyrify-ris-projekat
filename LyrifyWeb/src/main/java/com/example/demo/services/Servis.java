@@ -3,6 +3,7 @@ package com.example.demo.services;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.example.demo.repositories.KomentarRepository;
 import com.example.demo.repositories.KorisnikRepository;
 import com.example.demo.repositories.OcenaTekstaRepository;
+import com.example.demo.repositories.OmiljeniTekstRepository;
 import com.example.demo.repositories.PesmaRepository;
 import com.example.demo.repositories.TekstPesmeRepository;
 import com.example.demo.repositories.ZanrRepository;
@@ -18,6 +20,7 @@ import jakarta.transaction.Transactional;
 import model.Komentar;
 import model.Korisnik;
 import model.OcenaTeksta;
+import model.OmiljeniTekst;
 import model.Pesma;
 import model.TekstPesme;
 import model.Uloga;
@@ -43,6 +46,9 @@ public class Servis {
 	
 	@Autowired
 	private KomentarRepository komr;
+	
+	@Autowired
+	private OmiljeniTekstRepository omr;
 	
 	public List<Pesma> pretraziPesmePoImenu(String naziv) {
         List<Pesma> pesme = pr.findByNazivContainingIgnoreCase(naziv);
@@ -286,6 +292,87 @@ public class Servis {
     public void obrisiKomentar(int komentarId) {
         komr.deleteById(komentarId);
     }
+
+//    public void dodajUOmiljenee(int tekstId, Korisnik korisnik) {
+//        //provera da li postoji u bazi
+//    	Optional<Korisnik> korisnikIzBaze = kr.findById(korisnik.getId());
+//        if (korisnikIzBaze.isEmpty()) {
+//            throw new RuntimeException("Korisnik ne postoji u bazi");
+//        }
+//    	
+//    	// Provera da li već postoji (opcionalno)
+//    	OmiljeniTekst postojeci = omr
+//             .findByKorisnikIdAndTekstId(korisnik.getId(), tekstId);
+//        if (postojeci != null) {
+//            // već postoji, možemo ili ignorisati ili baciti izuzetak
+//            return;
+//        }
+//
+//        // Ako ne postoji, kreiramo novi
+//        TekstPesme tp = tpr.findById(tekstId)
+//          .orElseThrow(() -> new RuntimeException("Tekst nije pronađen"));
+//
+//        OmiljeniTekst om = new OmiljeniTekst();
+//        om.setKorisnik(korisnik);
+//        om.setTekst(tp);
+//        omr.save(om);
+//    }
+    
+    
+
+    public void dodajUOmiljene(int tekstId, Korisnik korisnik) {
+
+        OmiljeniTekst postojeci = omr.findByKorisnikIdAndTekstId(korisnik.getId(), tekstId);
+        if (postojeci != null) {
+            return;
+        }
+
+        TekstPesme tp = tpr.findById(tekstId)
+                .orElseThrow(() -> {
+                    return new RuntimeException("Tekst nije pronađen");
+                });
+
+        OmiljeniTekst om = new OmiljeniTekst();
+        om.setKorisnikId(korisnik.getId());
+        om.setTekstId(tp.getId());
+//        om.setKorisnik(korisnik);
+//        om.setTekst(tp);
+
+        System.out.println("Dodavanje u omiljene - Korisnik ID: " + korisnik.getId() + ", Tekst ID: " + tekstId);
+        omr.save(om);
+        System.out.println("Tekst ID: " + tekstId + " dodat u omiljene za korisnika ID: " + korisnik.getId());
+
+    }
+
+
+    // Dohvatanje omiljenih tekstova korisnika
+    public List<OmiljeniTekst> omiljeniTekstoviKorisnika(int korisnikId) {
+        return omr.findByKorisnikId(korisnikId);
+    }
+    
+    public boolean jeTekstUOmiljenim(int korisnikId, int tekstId) {
+        System.out.println("Provera da li je tekst ID: " + tekstId + " u omiljenim za korisnika ID: " + korisnikId);
+        OmiljeniTekst omiljeniTekst = omr.findByKorisnikIdAndTekstId(korisnikId, tekstId);
+        boolean rezultat = omiljeniTekst != null;
+        System.out.println("Rezultat provere: " + rezultat);
+        return rezultat;
+    }
+
+    
+    public void ukloniIzOmiljenih(int tekstId, Korisnik korisnik) {
+        System.out.println("Provera postojanja teksta ID: " + tekstId + " u omiljenim za korisnika ID: " + korisnik.getId());
+        OmiljeniTekst omiljeniTekst = omr.findByKorisnikIdAndTekstId(korisnik.getId(), tekstId);
+        if (omiljeniTekst != null) {
+            System.out.println("Tekst ID: " + tekstId + " pronađen u omiljenim. Brišemo...");
+            omr.delete(omiljeniTekst);
+            System.out.println("Tekst ID: " + tekstId + " uspešno obrisan iz omiljenih.");
+        } else {
+            System.out.println("Tekst ID: " + tekstId + " nije pronađen u omiljenim za korisnika ID: " + korisnik.getId());
+        }
+    }
+
+
+
 
     
     

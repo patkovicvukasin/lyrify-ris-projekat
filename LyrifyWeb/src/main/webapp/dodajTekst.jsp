@@ -58,7 +58,7 @@
             <c:otherwise>
                 <!-- Poruka i dugme za dodavanje pesme ako nema dostupnih pesama -->
                 <p>Za odabrani žanr trenutno nema dostupnih pesama.</p>
-                <a href="/dodajPesmu"><button type="button">Dodaj novu pesmu</button></a><br>
+                <a href="/dodajPesmu"><button type="button">Dodaj novu pesmu</button></a><br><br>
             </c:otherwise>
         </c:choose>
     </c:if>

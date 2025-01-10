@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.demo.services.Servis;
 
 import jakarta.servlet.http.HttpSession;
 import model.Komentar;
 import model.Korisnik;
+import model.OmiljeniTekst;
 import model.Pesma;
 import model.TekstPesme;
 import model.Uloga;
@@ -155,6 +157,9 @@ public class Kontroler {
         List<TekstPesme> tekstovi = s.nadjiTekstoveZaKorisnika(ulogovani.getId());
         model.addAttribute("tekstovi", tekstovi);
         
+        List<OmiljeniTekst> omiljeniTekstovi = s.omiljeniTekstoviKorisnika(ulogovani.getId());
+        model.addAttribute("omiljeniTekstovi", omiljeniTekstovi);
+        
         // Ovde dodaj logiku za dobijanje prosečne ocene svakog teksta
         Map<Integer, Double> mapeProsecneOcene = new HashMap<>();
         for (TekstPesme tp : tekstovi) {
@@ -243,7 +248,22 @@ public class Kontroler {
             System.out.println("Tip uloge: " + (ulogovani != null ? ulogovani.getUloga().getClass().getName() : "null"));
 
             System.out.println("Uloga korisnika: " + (ulogovani != null ? ulogovani.getUloga() : "null"));
+            
+            // Provera da li je tekst u omiljenim
+            boolean jeOmiljen = false;
+            boolean jeAutor = false;
+            
+            if (ulogovani != null) {
+                jeOmiljen = s.jeTekstUOmiljenim(ulogovani.getId(), tekstPesme.getId());
+                jeAutor = tekstPesme.getKorisnik().getId() == ulogovani.getId();
+            }
+            System.out.println("jeOmiljen: " + jeOmiljen + ", jeAutor: " + jeAutor);
+
+            model.addAttribute("jeOmiljen", jeOmiljen);
+            model.addAttribute("jeAutor", jeAutor);
+            
             return "tekst";
+            
         } else {
             // Ako ih ima više, prikaži listu svih tekstova
             model.addAttribute("tekstovi", tekstovi);
@@ -269,6 +289,15 @@ public class Kontroler {
         
         Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
         model.addAttribute("ulogovaniKorisnik", ulogovani);
+        
+        boolean jeOmiljen = false;
+        boolean jeAutor = false;
+        if (ulogovani != null) {
+            jeOmiljen = s.jeTekstUOmiljenim(ulogovani.getId(), tekstPesme.getId());
+            jeAutor = (tekstPesme.getKorisnik().getId() == ulogovani.getId());
+        }
+        model.addAttribute("jeOmiljen", jeOmiljen);
+        model.addAttribute("jeAutor", jeAutor);
         
         boolean isAdmin = (ulogovani != null && ulogovani.getUloga() == Uloga.ADMIN);
         model.addAttribute("isAdmin", isAdmin);
@@ -511,5 +540,132 @@ public class Kontroler {
         return "redirect:/tekst/" + komentar.getTekstPesme().getId(); // Vrati korisnika na stranicu teksta
     }
 
-   
+//    @PostMapping("/dodajUOmiljene")
+//    public String dodajUOmiljenee(
+//            @RequestParam("tekstId") int tekstId,
+//            HttpSession session,
+//            Model model) {
+//        Korisnik korisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+//        if (korisnik == null) {
+//        	model.addAttribute("poruka", "Morate biti prijavljeni da biste dodali tekst u omiljene.");
+//        	return "tekst";
+//            // ako nije prijavljen -> preusmeri možda na /prijava
+//            //return "redirect:/prijava";
+//        }
+//
+//        try {
+//            s.dodajUOmiljene(tekstId, korisnik);
+//            model.addAttribute("poruka", "Tekst je uspešno dodat u omiljene!");
+//        } catch (Exception e) {
+//            model.addAttribute("poruka", "Došlo je do greške prilikom dodavanja teksta u omiljene.");
+//        }
+//
+//        // Vratimo korisnika na /tekst/{tekstId} 
+//        return "redirect:/tekst/" + tekstId;
+//    }
+    
+//    @PostMapping("/dodajUOmiljene")
+//    public String dodajUOmiljene(
+//            @RequestParam("tekstId") int tekstId,
+//            HttpSession session,
+//            Model model) {
+//
+//        Korisnik korisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+//        if (korisnik == null) {
+//            model.addAttribute("poruka", "Morate biti prijavljeni da biste dodali tekst u omiljene.");
+//            // Odmah vrati prikaz (forward na tekst.jsp)
+//            return ponovoUkljuciAtribute(tekstId, model, session);
+//        }
+//
+//        s.dodajUOmiljene(tekstId, korisnik);
+//        model.addAttribute("poruka", "Dodato u omiljene.");
+//
+//        // Pozivamo metodu koja opet učitava sve (tekstPesme, jeOmiljen, komentare itd.)
+//        return ponovoUkljuciAtribute(tekstId, model, session);
+//    }
+//
+//    @PostMapping("/ukloniIzOmiljenih")
+//    public String ukloniIzOmiljenih(
+//            @RequestParam("tekstId") int tekstId,
+//            HttpSession session,
+//            Model model) {
+//
+//        Korisnik korisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+//        if (korisnik == null) {
+//            model.addAttribute("poruka", "Morate biti prijavljeni da biste uklonili tekst iz omiljenih.");
+//            return ponovoUkljuciAtribute(tekstId, model, session);
+//        }
+//
+//        s.ukloniIzOmiljenih(tekstId, korisnik);
+//        model.addAttribute("poruka", "Uklonjeno iz omiljenih.");
+//
+//        return ponovoUkljuciAtribute(tekstId, model, session);
+//    }
+
+    
+    @PostMapping("/dodajUOmiljene")
+    public String dodajUOmiljene(
+            @RequestParam("tekstId") int tekstId,
+            HttpSession session,
+            Model model) {
+
+        Korisnik korisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (korisnik == null) {
+            model.addAttribute("poruka", "Morate biti prijavljeni da biste dodali tekst u omiljene.");
+            return ponovoUkljuciAtribute(tekstId, model, session);
+        }
+
+        s.dodajUOmiljene(tekstId, korisnik);
+        model.addAttribute("poruka", "Dodato u omiljene.");
+
+        return ponovoUkljuciAtribute(tekstId, model, session);
+    }
+
+    @PostMapping("/ukloniIzOmiljenih")
+    public String ukloniIzOmiljenih(
+            @RequestParam("tekstId") int tekstId,
+            HttpSession session,
+            Model model) {
+
+        Korisnik korisnik = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        if (korisnik == null) {
+            model.addAttribute("poruka", "Morate biti prijavljeni da biste uklonili tekst iz omiljenih.");
+            return ponovoUkljuciAtribute(tekstId, model, session);
+        }
+
+        s.ukloniIzOmiljenih(tekstId, korisnik);
+        model.addAttribute("poruka", "Uklonjeno iz omiljenih.");
+
+        return ponovoUkljuciAtribute(tekstId, model, session);
+    }
+
+    /** Metoda koja "simulira" GET logiku i vraća direktno tekst.jsp */
+    private String ponovoUkljuciAtribute(int tekstId, Model model, HttpSession session) {
+        TekstPesme tekstPesme = s.nadjiTekstPesmePoId(tekstId);
+        model.addAttribute("tekstPesme", tekstPesme);
+
+        List<Komentar> komentari = s.nadjiKomentareZaTekst(tekstId);
+        model.addAttribute("komentari", komentari);
+
+        Double prosecnaOcena = s.nadjiProsecnuOcenu(tekstId);
+        model.addAttribute("prosecnaOcena", prosecnaOcena);
+
+        Korisnik ulogovani = (Korisnik) session.getAttribute("ulogovaniKorisnik");
+        model.addAttribute("ulogovaniKorisnik", ulogovani);
+
+        boolean jeOmiljen = false;
+        boolean jeAutor = false;
+        if (ulogovani != null) {
+            jeOmiljen = s.jeTekstUOmiljenim(ulogovani.getId(), tekstId);
+            jeAutor = (tekstPesme.getKorisnik().getId() == ulogovani.getId());
+        }
+        model.addAttribute("jeOmiljen", jeOmiljen);
+        model.addAttribute("jeAutor", jeAutor);
+        
+        boolean isAdmin = (ulogovani != null && ulogovani.getUloga() == Uloga.ADMIN);
+        model.addAttribute("isAdmin", isAdmin);
+
+        return "tekst";  // Vrati JSP stranicu
+    }
+    
 }
