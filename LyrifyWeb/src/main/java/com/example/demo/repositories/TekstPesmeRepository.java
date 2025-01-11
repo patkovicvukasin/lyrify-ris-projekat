@@ -9,8 +9,10 @@ import org.springframework.data.repository.query.Param;
 import model.TekstPesme;
 
 public interface TekstPesmeRepository extends JpaRepository<TekstPesme, Integer> {
-    List<TekstPesme> findByPesmaId(Integer pesmaId);
-    List<TekstPesme> findByKorisnikId(int korisnikId);
-    @Query("SELECT t FROM TekstPesme t WHERE LOWER(t.tekst) LIKE LOWER(CONCAT('%', :tekst, '%'))")
-    List<TekstPesme> findByTekstContainingIgnoreCase(@Param("tekst") String tekst);
+	List<TekstPesme> findByPesmaId(Integer pesmaId);
+
+	List<TekstPesme> findByKorisnikId(int korisnikId);
+
+	@Query("SELECT t FROM TekstPesme t WHERE LOWER(t.tekst) LIKE LOWER(CONCAT('%', :tekst, '%'))")
+	List<TekstPesme> findByTekstContainingIgnoreCase(@Param("tekst") String tekst);
 }

@@ -6,7 +6,8 @@ import model.OmiljeniTekst;
 import model.OmiljeniTekstId;
 
 public interface OmiljeniTekstRepository extends JpaRepository<OmiljeniTekst, OmiljeniTekstId> {
-    
-    List<OmiljeniTekst> findByKorisnikId(int korisnikId);
-    OmiljeniTekst findByKorisnikIdAndTekstId(int korisnikId, int tekstId);
+
+	List<OmiljeniTekst> findByKorisnikId(int korisnikId);
+
+	OmiljeniTekst findByKorisnikIdAndTekstId(int korisnikId, int tekstId);
 }
