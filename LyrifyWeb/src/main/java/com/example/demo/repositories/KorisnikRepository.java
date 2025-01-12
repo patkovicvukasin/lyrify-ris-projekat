@@ -10,5 +10,4 @@ public interface KorisnikRepository extends JpaRepository<Korisnik, Integer> {
 	Korisnik findByEmail(String email);
 
 	Optional<Korisnik> findById(int id);
-
 }

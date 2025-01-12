@@ -1,5 +1,5 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,6 +19,13 @@
 		<button type="submit">Prijavi se</button>
 	</form>
 	<br>
+	
+    <c:if test="${param.error eq 'NeuspesnaPrijava'}">
+        <p style="color:red;">
+            Neuspešna prijava. Proverite email i lozinku i pokušajte ponovo.
+        </p>
+    </c:if>
+	
 	<br>
 	<a href="/"><button type="button">Nazad na početnu</button></a>
 </body>
