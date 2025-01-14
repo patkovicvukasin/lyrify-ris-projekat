@@ -56,21 +56,21 @@ public class KorisnikController {
 		return "redirect:/";
 	}
 
-	@PostMapping("/processPrijava")
-	public String obradiPrijavu(@RequestParam("email") String email, @RequestParam("lozinka") String lozinka,
-			HttpSession session) {
-		boolean uspesno = ks.prijaviKorisnika(email, lozinka);
-		if (uspesno) {
-			Korisnik k = ks.nadjiKorisnikaPoEmailu(email);
-			session.setAttribute("ulogovaniKorisnik", k);
-
-			System.out.println("Prijava USPELA za korisnika: " + k.getKorisnickoIme());
-			return "redirect:/";
-		} else {
-			System.out.println("Neuspesna prijava");
-			return "redirect:/prijava?error=NeuspesnaPrijava";
-		}
-	}
+//	@PostMapping("/processPrijava")
+//	public String obradiPrijavu(@RequestParam("email") String email, @RequestParam("lozinka") String lozinka,
+//			HttpSession session) {
+//		boolean uspesno = ks.prijaviKorisnika(email, lozinka);
+//		if (uspesno) {
+//			Korisnik k = ks.nadjiKorisnikaPoEmailu(email);
+//			session.setAttribute("ulogovaniKorisnik", k);
+//
+//			System.out.println("Prijava USPELA za korisnika: " + k.getKorisnickoIme());
+//			return "redirect:/";
+//		} else {
+//			System.out.println("Neuspesna prijava");
+//			return "redirect:/prijava?error=NeuspesnaPrijava";
+//		}
+//	}
 
 	@GetMapping("/potvrda")
 	public String potvrda() {
